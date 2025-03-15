@@ -1,0 +1,46 @@
+<html>
+
+<head>
+    <title>My Game</title>
+    <meta content="text/html;charset=utf-8" http-equiv="Content-Type" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport"> <meta name="apple-mobile-web-app-capable" content="yes">
+    <style>
+        html,
+        canvas {
+            background-color: #252526;
+            margin: auto;
+            padding: 0;
+            display: block;
+            width: 800px;
+            height: 480px;
+            overflow: hidden;
+            position: absolute;
+
+            top: 0;
+            bottom: 0;
+            left: 0;
+            right: 0;
+        }
+
+        * {
+            outline: none;
+        }
+    </style>
+</head>
+
+<body>
+<canvas id="notan_canvas"></canvas>
+</body>
+
+<script type="module">
+    import init from './pkg/MEGA_Hackathon_25.js'
+    async function run() {
+        await init();
+    }
+
+    run();
+</script>
+
+
+</html>
