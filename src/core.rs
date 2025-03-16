@@ -3,58 +3,7 @@ use notan::draw::*;
 use notan::prelude::*;
 use notan_egui::*;
 
-use std::collections::HashMap;
-
-pub struct Business {
-    funds: i32,
-    prices: HashMap<String, i32>,
-    allocation: HashMap<String, i32>,
-}
-
-impl Business {
-    fn new() -> Self {
-        let mut prices = HashMap::new();
-        prices.insert(String::from("Food"), 0);
-
-        prices.insert(String::from("Fighter Armor"), 0);
-        prices.insert(String::from("Fighter Weapons"), 0);
-
-        prices.insert(String::from("Cleric Armor"), 0);
-        prices.insert(String::from("Cleric Weapons"), 0);
-
-        prices.insert(String::from("Mage Armor"), 0);
-        prices.insert(String::from("Mage Weapons"), 0);
-
-        let mut allocation = HashMap::new();
-
-        Self {
-            funds: 0,
-            prices,
-            allocation,
-        }
-    }
-
-    fn get_price_mut(&mut self, name: &str) -> &mut i32 {
-        self.prices.get_mut(name).unwrap()
-    }
-
-    fn funds(&self) -> i32 {
-        self.funds
-    }
-
-    fn price_label(&mut self, ui: &mut Ui, name: &str) {
-        const MAX_PRICE: i32 = 1_000_000;
-        ui.columns(2, |uis| {
-            uis[0].label(format!("{}:", name));
-            let value = self.get_price_mut(name);
-            uis[1]
-                .add(DragValue::new(value).clamp_range(0..=MAX_PRICE).prefix("$"))
-                .on_hover_ui(|ui| {
-                    ui.label("Current price level.\nHigher price levels may lower demand while lower price levels may not make as much profit.\nA price level of $0 means the good is not for sale.");
-                });
-        });
-    }
-}
+use crate::business::Business;
 
 #[derive(AppState)]
 pub struct Core {
@@ -174,10 +123,35 @@ impl Core {
                     state.business.price_label(ui, "Mage Weapons");
                 });
 
-            Window::new("Funds Allocation")
+            Window::new("Fund Allocation")
                 .resizable(false)
                 .show(ctx, |ui| {
-                    ui.label(format!("Available Funds: ${}", state.business.funds()))
+                    ui.label(format!("Available Funds: ${}", state.business.funds()));
+
+                    state.business.allocation_label(ui, "Food");
+
+                    ui.separator();
+
+                    state.business.allocation_label(ui, "Fighter Armor");
+                    state.business.allocation_label(ui, "Fighter Weapons");
+
+                    ui.separator();
+
+                    state.business.allocation_label(ui, "Cleric Armor");
+                    state.business.allocation_label(ui, "Cleric Weapons");
+
+                    ui.separator();
+
+                    state.business.allocation_label(ui, "Mage Armor");
+                    state.business.allocation_label(ui, "Mage Weapons");
+
+                    ui.separator();
+                    state
+                        .business
+                        .allocation_label(ui, "Research & Development");
+
+                    ui.separator();
+                    state.business.allocation_label(ui, "Marketing");
                 });
         });
 
