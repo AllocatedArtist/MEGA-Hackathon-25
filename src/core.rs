@@ -15,7 +15,11 @@ pub struct Core {
 
     class_characters: [Option<Texture>; 3],
 
+    window_states: [bool; 3],
+
     time: f32,
+
+    production_time: f32,
 
     business: Business,
     client: Client,
@@ -43,9 +47,13 @@ impl Core {
             background_characters: None,
             time: 0.0,
 
+            window_states: [false, false, false],
+
             business: Business::new(100_000),
             client: Client::new(ClassType::CLERIC),
             class_characters: [None, None, None],
+
+            production_time: 0.0,
         }
     }
 
@@ -95,6 +103,13 @@ impl Core {
         }
 
         state.time += app.timer.delta_f32();
+
+        state.production_time += app.timer.delta_f32();
+
+        if state.production_time >= 5.0 {
+            state.production_time = 0.0;
+            state.business.update_quantities();
+        }
     }
 
     pub fn draw(graphics: &mut Graphics, plugins: &mut Plugins, state: &mut Core) {
@@ -154,57 +169,42 @@ impl Core {
         graphics.render(&fg);
 
         let ui_output = plugins.egui(|ctx| {
-            Window::new("Price Levels")
+            TopBottomPanel::bottom("bottom")
                 .resizable(false)
                 .show(ctx, |ui| {
-                    state.business.price_label(ui, "Food");
-
-                    ui.separator();
-
-                    state.business.price_label(ui, "Fighter Armor");
-                    state.business.price_label(ui, "Fighter Weapons");
-
-                    ui.separator();
-
-                    state.business.price_label(ui, "Cleric Armor");
-                    state.business.price_label(ui, "Cleric Weapons");
-
-                    ui.separator();
-
-                    state.business.price_label(ui, "Mage Armor");
-                    state.business.price_label(ui, "Mage Weapons");
+                    ui.columns(3, |uis| {
+                        uis[0].toggle_value(&mut state.window_states[0], "Price Levels");
+                        uis[1].toggle_value(&mut state.window_states[1], "Fund Allocation");
+                        uis[2].toggle_value(&mut state.window_states[2], "Supply");
+                    });
                 });
 
-            Window::new("Fund Allocation")
-                .resizable(false)
-                .show(ctx, |ui| {
-                    ui.label(format!("Available Funds: ${}", state.business.funds()));
+            if state.window_states[0] {
+                Window::new("Price Levels")
+                    .resizable(false)
+                    .collapsible(false)
+                    .show(ctx, |ui| {
+                        state.business.show_prices(ui);
+                    });
+            }
 
-                    state.business.allocation_label(ui, "Food");
+            if state.window_states[1] {
+                Window::new("Fund Allocation")
+                    .resizable(false)
+                    .collapsible(false)
+                    .show(ctx, |ui| {
+                        state.business.show_allocation(ui);
+                    });
+            }
 
-                    ui.separator();
-
-                    state.business.allocation_label(ui, "Fighter Armor");
-                    state.business.allocation_label(ui, "Fighter Weapons");
-
-                    ui.separator();
-
-                    state.business.allocation_label(ui, "Cleric Armor");
-                    state.business.allocation_label(ui, "Cleric Weapons");
-
-                    ui.separator();
-
-                    state.business.allocation_label(ui, "Mage Armor");
-                    state.business.allocation_label(ui, "Mage Weapons");
-
-                    ui.separator();
-                    state
-                        .business
-                        .allocation_label(ui, "Research & Development");
-
-                    ui.separator();
-                    state.business.allocation_label(ui, "Marketing");
-                });
+            if state.window_states[2] {
+                Window::new("Supply")
+                    .resizable(false)
+                    .collapsible(false)
+                    .show(ctx, |ui| {
+                        state.business.show_supply(ui);
+                    });
+            }
         });
 
         graphics.render(&ui_output);
