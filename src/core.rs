@@ -1,10 +1,37 @@
-use notan::draw::{DrawImages, DrawShapes, DrawTransform};
-use notan::{draw::CreateDraw, prelude::*};
-use notan_egui::*;
+use notan::draw::DrawImages;
 use notan::draw::*;
 use notan::prelude::*;
+use notan_egui::*;
 
-use crate::columns_ui::ColumnUI;
+use std::collections::HashMap;
+
+pub struct Business {
+    income: i32,
+    prices: HashMap<String, i32>,
+}
+
+impl Business {
+    fn new() -> Self {
+        let mut prices = HashMap::new();
+        prices.insert(String::from("Food"), 0);
+
+        prices.insert(String::from("Fighter Armor"), 0);
+        prices.insert(String::from("Fighter Weapons"), 0);
+
+        prices.insert(String::from("Cleric Armor"), 0);
+        prices.insert(String::from("Cleric Weapons"), 0);
+
+        prices.insert(String::from("Mage Armor"), 0);
+        prices.insert(String::from("Mage Weapons"), 0);
+
+        Self { income: 0, prices }
+    }
+
+    fn price_label(&self, name: &str) -> String {
+        let price = self.prices.get(name).unwrap();
+        format!("{}: ${}", name.to_string(), price)
+    }
+}
 
 #[derive(AppState)]
 pub struct Core {
@@ -13,15 +40,12 @@ pub struct Core {
     foreground_texture: Option<Texture>,
     background_characters: Option<Texture>,
     time: f32,
+
+    business: Business,
 }
 
 impl Core {
-
     pub fn new(assets: &mut Assets) -> Self {
-
-
-
-
         Self {
             loaded_assets: assets
                 .load_list(&[
@@ -34,8 +58,9 @@ impl Core {
             foreground_texture: None,
             background_characters: None,
             time: 0.0,
-        }
 
+            business: Business::new(),
+        }
     }
 
     pub fn update(app: &mut App, state: &mut Core) {
@@ -71,7 +96,6 @@ impl Core {
     }
 
     pub fn draw(graphics: &mut Graphics, plugins: &mut Plugins, state: &mut Core) {
-
         let mut bg = graphics.create_draw();
         bg.clear(Color::from_rgb(0.4, 0.6, 0.3));
 
@@ -106,10 +130,24 @@ impl Core {
         graphics.render(&fg);
 
         let ui_output = plugins.egui(|ctx| {
-            Window::new("Bank").resizable(false).show(ctx, |ui| {
+            Window::new("Services").resizable(false).show(ctx, |ui| {
+                ui.label(state.business.price_label("Food"));
+                // ui.add(DragValue::new(&mut state.business.prices));
 
+                ui.separator();
 
-                ui.label("Hello World");
+                ui.label(state.business.price_label("Fighter Weapons"));
+                ui.label(state.business.price_label("Fighter Armor"));
+
+                ui.separator();
+
+                ui.label(state.business.price_label("Cleric Weapons"));
+                ui.label(state.business.price_label("Cleric Armor"));
+
+                ui.separator();
+
+                ui.label(state.business.price_label("Mage Weapons"));
+                ui.label(state.business.price_label("Mage Armor"));
             });
         });
 
