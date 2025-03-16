@@ -8,6 +8,7 @@ use std::collections::HashMap;
 pub struct Business {
     funds: i32,
     prices: HashMap<String, i32>,
+    allocation: HashMap<String, i32>,
 }
 
 impl Business {
@@ -24,7 +25,13 @@ impl Business {
         prices.insert(String::from("Mage Armor"), 0);
         prices.insert(String::from("Mage Weapons"), 0);
 
-        Self { funds: 0, prices }
+        let mut allocation = HashMap::new();
+
+        Self {
+            funds: 0,
+            prices,
+            allocation,
+        }
     }
 
     fn get_price_mut(&mut self, name: &str) -> &mut i32 {
