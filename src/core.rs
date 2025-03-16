@@ -15,7 +15,13 @@ pub struct Core {
 
     class_characters: [Option<Texture>; 3],
 
-    window_states: [bool; 3],
+    window_states: [bool; 4],
+
+    bg_music: AudioSource,
+    bg_sound: Option<Sound>,
+    volume: f32,
+
+    start_game: bool,
 
     time: f32,
 
@@ -30,7 +36,7 @@ impl Core {
     const MAGE_TEXTURE: usize = 1;
     const CLERIC_TEXTURE: usize = 2;
 
-    pub fn new(assets: &mut Assets) -> Self {
+    pub fn new(app: &mut App, assets: &mut Assets) -> Self {
         Self {
             loaded_assets: assets
                 .load_list(&[
@@ -47,7 +53,18 @@ impl Core {
             background_characters: None,
             time: 0.0,
 
-            window_states: [false, false, false],
+            volume: 1.0,
+
+            bg_music: app
+                .audio
+                .create_source(include_bytes!("../assets/5AM Jazz Mumbling.wav"))
+                .unwrap(),
+
+            bg_sound: None,
+
+            window_states: [false, false, false, false],
+
+            start_game: false,
 
             business: Business::new(100_000),
             client: Client::new(ClassType::CLERIC),
@@ -60,6 +77,19 @@ impl Core {
     pub fn update(app: &mut App, state: &mut Core) {
         if !state.loaded_assets.is_loaded() {
             return;
+        }
+
+        if app.mouse.left_was_pressed() && !state.start_game {
+            state.start_game = true;
+        }
+
+        if !state.start_game {
+            return;
+        }
+
+        //Wait for user interaction before playing audio
+        if state.start_game && state.bg_sound.is_none() && state.time > 1.0 {
+            state.bg_sound = Some(app.audio.play_sound(&state.bg_music, 1.0, true));
         }
 
         let mut load_texture = |path| {
@@ -109,6 +139,10 @@ impl Core {
         if state.production_time >= 5.0 {
             state.production_time = 0.0;
             state.business.update_quantities();
+        }
+
+        if let Some(sound) = &state.bg_sound {
+            app.audio.set_volume(sound, state.volume);
         }
     }
 
@@ -172,10 +206,11 @@ impl Core {
             TopBottomPanel::bottom("bottom")
                 .resizable(false)
                 .show(ctx, |ui| {
-                    ui.columns(3, |uis| {
+                    ui.columns(4, |uis| {
                         uis[0].toggle_value(&mut state.window_states[0], "Price Levels");
                         uis[1].toggle_value(&mut state.window_states[1], "Fund Allocation");
                         uis[2].toggle_value(&mut state.window_states[2], "Supply");
+                        uis[3].toggle_value(&mut state.window_states[3], "Settings");
                     });
                 });
 
@@ -203,6 +238,22 @@ impl Core {
                     .collapsible(false)
                     .show(ctx, |ui| {
                         state.business.show_supply(ui);
+                    });
+            }
+
+            if state.window_states[3] {
+                Window::new("Settings")
+                    .resizable(false)
+                    .collapsible(false)
+                    .show(ctx, |ui| {
+                        ui.add(
+                            Slider::new(&mut state.volume, 0.0..=1.0)
+                                .text("Volume")
+                                .show_value(false),
+                        )
+                        .on_hover_ui(|ui| {
+                            ui.label("Our musician stayed up until 5 am to finish this.");
+                        });
                     });
             }
         });
