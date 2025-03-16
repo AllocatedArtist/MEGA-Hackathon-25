@@ -133,6 +133,9 @@ impl Core {
         }
 
         state.time += app.timer.delta_f32();
+        if state.time >= 8.0 {
+            state.time = 0.0;
+        }
 
         state.production_time += app.timer.delta_f32();
 
@@ -203,6 +206,21 @@ impl Core {
         graphics.render(&fg);
 
         let ui_output = plugins.egui(|ctx| {
+            if !state.start_game {
+                Window::new("Game")
+                    .resizable(false)
+                    .movable(false)
+                    .pivot(Align2::CENTER_CENTER)
+                    .fixed_pos(pos2(400.0, 240.0))
+                    .title_bar(false)
+                    .show(ctx, |ui| {
+                        ui.centered_and_justified(|ui| {
+                            ui.label("Click anywhere to start.");
+                        });
+                    });
+                return;
+            }
+
             TopBottomPanel::bottom("bottom")
                 .resizable(false)
                 .show(ctx, |ui| {
