@@ -1,5 +1,6 @@
-use notan::draw::DrawImages;
-use notan::draw::*;
+use std::any::Any;
+use notan::draw::{CreateDraw, DrawImages};
+use notan::draw::Image;
 use notan::prelude::*;
 use notan_egui::*;
 
@@ -63,11 +64,11 @@ pub struct Core {
 
     business: Business,
     client: Client,
+    position : f32,
 }
 
 impl Core {
     pub fn new(assets: &mut Assets) -> Self {
-
         Self {
             loaded_assets: assets
                 .load_list(&[
@@ -89,6 +90,7 @@ impl Core {
 
             business: Business::new(),
             client: Client::new(ClassType::FIGHTER),
+            position: -200.0,
         }
     }
 
@@ -147,6 +149,10 @@ impl Core {
             return;
         }
 
+        if !state.loaded_assets.is_loaded() {
+            return;
+        }
+
         if let Some(bg_image) = &state.background_texture {
             bg.image(bg_image).size(800.0, 480.0);
         }
@@ -162,7 +168,34 @@ impl Core {
                 .position(50.0, 50.0);
         }
 
+
         graphics.render(&bg);
+        let mut clients = graphics.create_draw();
+        let mut client_texture: Option<&Texture> = None;
+
+        match state.client.get_class_type() {
+            ClassType::FIGHTER => {
+                if let Some(texture) = &state.fighter {
+                    client_texture = Option::from(texture);
+                }
+            }
+            ClassType::CLERIC => {
+                if let Some(texture) = &state.cleric {
+                    client_texture = Option::from(texture);
+                }
+            }
+            ClassType::MAGE => {
+                if let Some(texture) = &state.magegirl {
+                    client_texture = Option::from(texture);
+                }
+            }
+        };
+
+        if let Some(texture) = client_texture {
+            state.client.draw(texture, &mut clients);
+        }
+
+        graphics.render(&clients);
 
         let mut fg = graphics.create_draw();
         if let Some(fg_image) = &state.foreground_texture {
@@ -176,6 +209,12 @@ impl Core {
                 .resizable(false)
                 .show(ctx, |ui| {
                     state.business.price_label(ui, "Food");
+
+                    if let Some(value) = state.business.prices.get("Food") {
+                        if *value > 20 {
+                            state.client.complete();
+                        }
+                    }
 
                     ui.separator();
 
@@ -197,9 +236,6 @@ impl Core {
                 .resizable(false)
                 .show(ctx, |ui| {
                     ui.label(format!("Available Funds: ${}", state.business.funds()));
-                    if let Some(fighter) = &state.fighter {
-                        ui.image(fighter);
-                    }
                 });
         });
 
