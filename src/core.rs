@@ -27,9 +27,21 @@ impl Business {
         Self { income: 0, prices }
     }
 
-    fn price_label(&self, name: &str) -> String {
-        let price = self.prices.get(name).unwrap();
-        format!("{}: ${}", name.to_string(), price)
+    fn get_price_mut(&mut self, name: &str) -> &mut i32 {
+        self.prices.get_mut(name).unwrap()
+    }
+
+    fn price_label(&mut self, ui: &mut Ui, name: &str) {
+        const MAX_PRICE: i32 = 1_000_000;
+        ui.columns(2, |uis| {
+            uis[0].label(format!("{}:", name));
+            let value = self.get_price_mut(name);
+            uis[1]
+                .add(DragValue::new(value).clamp_range(0..=MAX_PRICE).prefix("$"))
+                .on_hover_ui(|ui| {
+                    ui.label("Current price level.\nHigher price levels may lower demand while lower price levels may not make as much profit.\nA price level of $0 means the good is not for sale.");
+                });
+        });
     }
 }
 
@@ -130,25 +142,26 @@ impl Core {
         graphics.render(&fg);
 
         let ui_output = plugins.egui(|ctx| {
-            Window::new("Services").resizable(false).show(ctx, |ui| {
-                ui.label(state.business.price_label("Food"));
-                // ui.add(DragValue::new(&mut state.business.prices));
+            Window::new("Price Levels")
+                .resizable(false)
+                .show(ctx, |ui| {
+                    state.business.price_label(ui, "Food");
 
-                ui.separator();
+                    ui.separator();
 
-                ui.label(state.business.price_label("Fighter Weapons"));
-                ui.label(state.business.price_label("Fighter Armor"));
+                    state.business.price_label(ui, "Fighter Armor");
+                    state.business.price_label(ui, "Fighter Weapons");
 
-                ui.separator();
+                    ui.separator();
 
-                ui.label(state.business.price_label("Cleric Weapons"));
-                ui.label(state.business.price_label("Cleric Armor"));
+                    state.business.price_label(ui, "Cleric Armor");
+                    state.business.price_label(ui, "Cleric Weapons");
 
-                ui.separator();
+                    ui.separator();
 
-                ui.label(state.business.price_label("Mage Weapons"));
-                ui.label(state.business.price_label("Mage Armor"));
-            });
+                    state.business.price_label(ui, "Mage Armor");
+                    state.business.price_label(ui, "Mage Weapons");
+                });
         });
 
         graphics.render(&ui_output);
