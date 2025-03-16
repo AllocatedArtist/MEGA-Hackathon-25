@@ -4,6 +4,7 @@ use notan::prelude::*;
 use notan_egui::*;
 
 use crate::business::Business;
+use crate::client::{ClassType, Client};
 
 #[derive(AppState)]
 pub struct Core {
@@ -11,12 +12,20 @@ pub struct Core {
     background_texture: Option<Texture>,
     foreground_texture: Option<Texture>,
     background_characters: Option<Texture>,
+
+    class_characters: [Option<Texture>; 3],
+
     time: f32,
 
     business: Business,
+    client: Client,
 }
 
 impl Core {
+    const FIGHTER_TEXTURE: usize = 0;
+    const MAGE_TEXTURE: usize = 1;
+    const CLERIC_TEXTURE: usize = 2;
+
     pub fn new(assets: &mut Assets) -> Self {
         Self {
             loaded_assets: assets
@@ -24,6 +33,9 @@ impl Core {
                     "../assets/front.png",
                     "../assets/back.png",
                     "../assets/bg_characters.png",
+                    "../assets/Cleric.png",
+                    "../assets/fighter1.png",
+                    "../assets/magegirl.png",
                 ])
                 .unwrap(),
             background_texture: None,
@@ -31,7 +43,9 @@ impl Core {
             background_characters: None,
             time: 0.0,
 
-            business: Business::new(),
+            business: Business::new(100_000),
+            client: Client::new(ClassType::CLERIC),
+            class_characters: [None, None, None],
         }
     }
 
@@ -54,6 +68,10 @@ impl Core {
         let fg_empty = state.foreground_texture.is_none();
         let bg_char_empty = state.background_characters.is_none();
 
+        let fighter_empty = state.class_characters[Self::FIGHTER_TEXTURE].is_none();
+        let mage_empty = state.class_characters[Self::MAGE_TEXTURE].is_none();
+        let cleric_empty = state.class_characters[Self::CLERIC_TEXTURE].is_none();
+
         if bg_empty {
             state.background_texture = load_texture("../assets/back.png");
         }
@@ -62,6 +80,18 @@ impl Core {
         }
         if bg_char_empty {
             state.background_characters = load_texture("../assets/bg_characters.png");
+        }
+
+        if fighter_empty {
+            state.class_characters[Self::FIGHTER_TEXTURE] = load_texture("../assets/fighter1.png");
+        }
+
+        if mage_empty {
+            state.class_characters[Self::MAGE_TEXTURE] = load_texture("../assets/magegirl.png");
+        }
+
+        if cleric_empty {
+            state.class_characters[Self::CLERIC_TEXTURE] = load_texture("../assets/Cleric.png");
         }
 
         state.time += app.timer.delta_f32();
@@ -93,6 +123,28 @@ impl Core {
         }
 
         graphics.render(&bg);
+
+        let mut character = graphics.create_draw();
+
+        match state.client.get_class_type() {
+            ClassType::FIGHTER => {
+                if let Some(fighter) = &state.class_characters[Self::FIGHTER_TEXTURE] {
+                    state.client.draw(fighter, &mut character);
+                }
+            }
+            ClassType::MAGE => {
+                if let Some(mage) = &state.class_characters[Self::MAGE_TEXTURE] {
+                    state.client.draw(mage, &mut character);
+                }
+            }
+            ClassType::CLERIC => {
+                if let Some(cleric) = &state.class_characters[Self::CLERIC_TEXTURE] {
+                    state.client.draw(cleric, &mut character);
+                }
+            }
+        };
+
+        graphics.render(&character);
 
         let mut fg = graphics.create_draw();
         if let Some(fg_image) = &state.foreground_texture {
