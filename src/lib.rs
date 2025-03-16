@@ -1,5 +1,6 @@
 mod core;
 mod columns_ui;
+mod client;
 
 use notan::draw::DrawConfig;
 use notan::prelude::*;

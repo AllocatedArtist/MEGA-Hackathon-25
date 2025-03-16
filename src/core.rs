@@ -4,6 +4,7 @@ use notan::prelude::*;
 use notan_egui::*;
 
 use std::collections::HashMap;
+use crate::client::{ClassType, Client};
 
 pub struct Business {
     funds: i32,
@@ -55,27 +56,39 @@ pub struct Core {
     background_texture: Option<Texture>,
     foreground_texture: Option<Texture>,
     background_characters: Option<Texture>,
+    magegirl: Option<Texture>,
+    fighter: Option<Texture>,
+    cleric: Option<Texture>,
     time: f32,
 
     business: Business,
+    client: Client,
 }
 
 impl Core {
     pub fn new(assets: &mut Assets) -> Self {
+
         Self {
             loaded_assets: assets
                 .load_list(&[
                     "../assets/front.png",
                     "../assets/back.png",
                     "../assets/bg_characters.png",
+                    "../assets/magegirl.png",
+                    "../assets/fighter1.png",
+                    "../assets/Cleric.png",
                 ])
                 .unwrap(),
             background_texture: None,
             foreground_texture: None,
             background_characters: None,
+            magegirl: None,
+            fighter: None,
+            cleric: None,
             time: 0.0,
 
             business: Business::new(),
+            client: Client::new(ClassType::FIGHTER),
         }
     }
 
@@ -97,6 +110,9 @@ impl Core {
         let bg_empty = state.background_texture.is_none();
         let fg_empty = state.foreground_texture.is_none();
         let bg_char_empty = state.background_characters.is_none();
+        let magegirl_empty = state.magegirl.is_none();
+        let fighter_empty = state.fighter.is_none();
+        let cleric_empty = state.cleric.is_none();
 
         if bg_empty {
             state.background_texture = load_texture("../assets/back.png");
@@ -107,6 +123,16 @@ impl Core {
         if bg_char_empty {
             state.background_characters = load_texture("../assets/bg_characters.png");
         }
+        if magegirl_empty {
+            state.magegirl = load_texture("../assets/magegirl.png");
+        }
+        if fighter_empty {
+            state.fighter = load_texture("../assets/fighter1.png");
+        }
+        if cleric_empty {
+            state.cleric = load_texture("../assets/Cleric.png");
+        }
+
 
         state.time += app.timer.delta_f32();
     }
@@ -170,7 +196,10 @@ impl Core {
             Window::new("Funds Allocation")
                 .resizable(false)
                 .show(ctx, |ui| {
-                    ui.label(format!("Available Funds: ${}", state.business.funds()))
+                    ui.label(format!("Available Funds: ${}", state.business.funds()));
+                    if let Some(fighter) = &state.fighter {
+                        ui.image(fighter);
+                    }
                 });
         });
 
