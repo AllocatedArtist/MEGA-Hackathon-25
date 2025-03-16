@@ -31,7 +31,7 @@ impl Core {
             background_characters: None,
             time: 0.0,
 
-            business: Business::new(),
+            business: Business::new(100_000),
         }
     }
 
@@ -105,54 +105,18 @@ impl Core {
             Window::new("Price Levels")
                 .resizable(false)
                 .show(ctx, |ui| {
-                    state.business.price_label(ui, "Food");
-
-                    ui.separator();
-
-                    state.business.price_label(ui, "Fighter Armor");
-                    state.business.price_label(ui, "Fighter Weapons");
-
-                    ui.separator();
-
-                    state.business.price_label(ui, "Cleric Armor");
-                    state.business.price_label(ui, "Cleric Weapons");
-
-                    ui.separator();
-
-                    state.business.price_label(ui, "Mage Armor");
-                    state.business.price_label(ui, "Mage Weapons");
+                    state.business.show_prices(ui);
                 });
 
             Window::new("Fund Allocation")
                 .resizable(false)
                 .show(ctx, |ui| {
-                    ui.label(format!("Available Funds: ${}", state.business.funds()));
-
-                    state.business.allocation_label(ui, "Food");
-
-                    ui.separator();
-
-                    state.business.allocation_label(ui, "Fighter Armor");
-                    state.business.allocation_label(ui, "Fighter Weapons");
-
-                    ui.separator();
-
-                    state.business.allocation_label(ui, "Cleric Armor");
-                    state.business.allocation_label(ui, "Cleric Weapons");
-
-                    ui.separator();
-
-                    state.business.allocation_label(ui, "Mage Armor");
-                    state.business.allocation_label(ui, "Mage Weapons");
-
-                    ui.separator();
-                    state
-                        .business
-                        .allocation_label(ui, "Research & Development");
-
-                    ui.separator();
-                    state.business.allocation_label(ui, "Marketing");
+                    state.business.show_allocation(ui);
                 });
+
+            Window::new("Supply").resizable(false).show(ctx, |ui| {
+                ui.label("Supply");
+            });
         });
 
         graphics.render(&ui_output);
