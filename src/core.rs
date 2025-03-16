@@ -6,7 +6,7 @@ use notan_egui::*;
 use std::collections::HashMap;
 
 pub struct Business {
-    income: i32,
+    funds: i32,
     prices: HashMap<String, i32>,
 }
 
@@ -24,11 +24,15 @@ impl Business {
         prices.insert(String::from("Mage Armor"), 0);
         prices.insert(String::from("Mage Weapons"), 0);
 
-        Self { income: 0, prices }
+        Self { funds: 0, prices }
     }
 
     fn get_price_mut(&mut self, name: &str) -> &mut i32 {
         self.prices.get_mut(name).unwrap()
+    }
+
+    fn funds(&self) -> i32 {
+        self.funds
     }
 
     fn price_label(&mut self, ui: &mut Ui, name: &str) {
@@ -161,6 +165,12 @@ impl Core {
 
                     state.business.price_label(ui, "Mage Armor");
                     state.business.price_label(ui, "Mage Weapons");
+                });
+
+            Window::new("Funds Allocation")
+                .resizable(false)
+                .show(ctx, |ui| {
+                    ui.label(format!("Available Funds: ${}", state.business.funds()))
                 });
         });
 
