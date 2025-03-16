@@ -43,7 +43,9 @@ impl Client {
     }
 
     pub fn draw(&mut self, texture: &Texture, gfx: &mut Draw) {
-        gfx.image(texture).size(400.0, 400.0).position(self.position.0, self.position.1);
+        gfx.image(texture)
+            .size(315.0, 315.0)
+            .position(self.position.0, self.position.1);
 
         if !self.is_complete() {
             if self.position.0 >= 200.0 {
